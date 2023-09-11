@@ -8,7 +8,7 @@ const configuration = new Configuration({
 
 const openai = new OpenAIApi(configuration);
 
-// הגדרת פונקיצה ליצירת מאמר
+// Define the function to generate an article
 const generateArticle = async (desiredWordCount, topicPrompt) => {
   let totalText = "";
   let prompt = topicPrompt;
@@ -23,29 +23,54 @@ const generateArticle = async (desiredWordCount, topicPrompt) => {
     });
 
     totalText += completion.data.choices[0].text;
-    
-    // הגדרת המשך כדי להמשיך את יצירת המאמר
     prompt = "Continue...";
   }
 
   totalText = topicPrompt + '\n\n' + totalText;
-  console.log("Generated completion:", totalText);
 
-  // המר את ה-topicPrompt לשם קובץ
-  const filename = `${topicPrompt.replace(/[^a-zA-Z0-9]/g, '_')}.txt`;
+  // Add your translation code here
+  const { TranslationServiceClient } = require('@google-cloud/translate');
+  
+  // Set as an environment variable instead
+  process.env.GOOGLE_APPLICATION_CREDENTIALS = "C:\\Users\\sdrat\\Downloads\\chatgpt-398414-43e32f49d66f.json";
 
-  // שמירת הקובץ בשם המאמר 
-  fs.writeFile(filename, totalText, (err) => {
+  const translationClient = new TranslationServiceClient();
+  const projectId = 'chatgpt-398414';
+  const location = 'global';
+
+  async function translateText() {
+    const request = {
+      parent: `projects/${projectId}/locations/${location}`,
+      contents: [totalText],
+      mimeType: 'text/plain',
+      sourceLanguageCode: 'en',
+      targetLanguageCode: 'he',
+    };
+
+    const [response] = await translationClient.translateText(request);
+
+    for (const translation of response.translations) {
+      console.log(`Translation: ${translation.translatedText}`);
+      saveTranslatedTextToFile(topicPrompt, translation.translatedText);
+    }
+  }
+  
+  await translateText();
+};
+
+// Function to save translated text to a file
+const saveTranslatedTextToFile = (topicPrompt, translatedText) => {
+  const filename = `${topicPrompt.replace(/[^a-zA-Z0-9]/g, '_')}_translated.txt`;
+
+  fs.writeFile(filename, translatedText, (err) => {
     if (err) {
       console.error("An error occurred while saving the file:", err);
     } else {
-      console.log(`Article successfully saved to '${filename}'`);
+      console.log(`Translated article successfully saved to '${filename}'`);
     }
   });
-  return totalText;
-}
+};
 
-// בחירת כמות מילים ונושא המאמר
 const desiredWordCount = 1000;
-const topicPrompt = "article about building and maintaining websites";  // Change this prompt for different topics
+const topicPrompt = "Buying a new laptop";
 generateArticle(desiredWordCount, topicPrompt);
