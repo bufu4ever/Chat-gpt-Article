@@ -1,6 +1,7 @@
 const { Configuration, OpenAIApi } = require("openai");
 const fs = require('fs'); 
 require('dotenv').config();
+const { TranslationServiceClient } = require('@google-cloud/translate');
 
 const configuration = new Configuration({
   apiKey: process.env.OpenAIApi
@@ -8,7 +9,24 @@ const configuration = new Configuration({
 
 const openai = new OpenAIApi(configuration);
 
-// Define the function to generate an article
+const getLastSentence = (text) => {
+    const sentences = text.match(/[^\.!\?]+[\.!\?]+/g) || [];
+    return sentences[sentences.length - 1] || text;
+}
+
+const removeRepetitiveSentences = (text) => {
+    const sentences = text.match(/[^\.!\?]+[\.!\?]+/g) || [];
+    const uniqueSentences = [];
+
+    sentences.forEach(sentence => {
+        if (!uniqueSentences.includes(sentence.trim())) {
+            uniqueSentences.push(sentence.trim());
+        }
+    });
+
+    return uniqueSentences.join(' ');
+}
+
 const generateArticle = async (desiredWordCount, topicPrompt) => {
   let totalText = "";
   let prompt = topicPrompt;
@@ -23,15 +41,13 @@ const generateArticle = async (desiredWordCount, topicPrompt) => {
     });
 
     totalText += completion.data.choices[0].text;
-    prompt = "Continue...";
+    prompt = getLastSentence(completion.data.choices[0].text);
   }
 
+  totalText = removeRepetitiveSentences(totalText);
   totalText = topicPrompt + '\n\n' + totalText;
 
-  // Add your translation code here
-  const { TranslationServiceClient } = require('@google-cloud/translate');
-  
-  // Set as an environment variable instead
+  // Set as an environment variable for Google Cloud Translation API
   process.env.GOOGLE_APPLICATION_CREDENTIALS = "C:\\Users\\sdrat\\Downloads\\chatgpt-398414-43e32f49d66f.json";
 
   const translationClient = new TranslationServiceClient();
@@ -58,7 +74,6 @@ const generateArticle = async (desiredWordCount, topicPrompt) => {
   await translateText();
 };
 
-// Function to save translated text to a file
 const saveTranslatedTextToFile = (topicPrompt, translatedText) => {
   const filename = `${topicPrompt.replace(/[^a-zA-Z0-9]/g, '_')}_translated.txt`;
 
@@ -72,5 +87,5 @@ const saveTranslatedTextToFile = (topicPrompt, translatedText) => {
 };
 
 const desiredWordCount = 1000;
-const topicPrompt = "Buying a new laptop";
+const topicPrompt = "Creating the perfect workstation for your garage: a comprehensive guide";
 generateArticle(desiredWordCount, topicPrompt);
