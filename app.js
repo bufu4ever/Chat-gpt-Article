@@ -87,5 +87,5 @@ const saveTranslatedTextToFile = (topicPrompt, translatedText) => {
 };
 
 const desiredWordCount = 1000;
-const topicPrompt = "Creating the perfect workstation for your garage: a comprehensive guide";
+const topicPrompt = "article about Computer Science";
 generateArticle(desiredWordCount, topicPrompt);
