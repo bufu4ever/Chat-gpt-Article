@@ -34,7 +34,7 @@ const generateArticle = async (desiredWordCount, topicPrompt) => {
 
   while (totalText.split(' ').length < desiredWordCount) {
     const completion = await openai.createCompletion({
-      model: "text-davinci-003",
+      model: "gpt-3.5-turbo-instruct",
       prompt,
       temperature: 0.1,
       max_tokens: max_tokens_per_request,
@@ -87,5 +87,5 @@ const saveTranslatedTextToFile = (topicPrompt, translatedText) => {
 };
 
 const desiredWordCount = 1000;
-const topicPrompt = "article about Computer Science";
+const topicPrompt = "article about choosing the right mobile device";
 generateArticle(desiredWordCount, topicPrompt);
