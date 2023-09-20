@@ -36,10 +36,9 @@ const generateArticle = async (desiredWordCount, topicPrompt) => {
     const completion = await openai.createCompletion({
       model: "gpt-3.5-turbo-instruct",
       prompt,
-      temperature: 0.1,
+      temperature: 0.6,
       max_tokens: max_tokens_per_request,
     });
-
     totalText += completion.data.choices[0].text;
     prompt = getLastSentence(completion.data.choices[0].text);
   }
@@ -87,5 +86,5 @@ const saveTranslatedTextToFile = (topicPrompt, translatedText) => {
 };
 
 const desiredWordCount = 1000;
-const topicPrompt = "article about choosing the right mobile device";
+const topicPrompt = "artificial intelligence and the future of teaching and learning";
 generateArticle(desiredWordCount, topicPrompt);
